@@ -1,21 +1,43 @@
-# 🏠 Smart Home Console Simulation
+# Embedded C Smart Home Simulation
 
-A software-only Embedded C project simulating a smart home control system using a menu-driven interface. This project demonstrates core embedded systems concepts like GPIO control, password protection, simulated sensor reading, EEPROM-like file handling, and real-time state management — **without requiring any actual hardware or simulator**.
+Small, educational smart-home simulator written in C. This repo demonstrates a simple console-based simulation of lights, fan control, door lock (password), and a simulated temperature sensor.
 
----
+**Highlights**
+- Portable C (POSIX & Windows) with simple build instructions
+- Save/load settings to a local file (simulated EEPROM)
+- GitHub Actions build workflow
 
-## 🚀 Features
+## Build (Linux / macOS)
 
-| Module | Description |
-|--------|-------------|
-| 💡 Light Control | Toggle Room, Kitchen, and Hall lights ON/OFF |
-| 🌬️ Fan Speed Control | Adjust fan speed (OFF, LOW, MEDIUM, HIGH) |
-| 🔐 Door Lock | Password-protected system with limited attempts |
-| 🌡️ Temperature Sensor | Simulated ADC input converted to Celsius |
-| 💾 EEPROM Save/Load | Simulated persistent storage using file I/O |
-| 🖥️ Console UI | Menu-driven system with clean prompts and states |
+Requirements: `gcc` (or `clang`)
 
----
+```bash
+gcc -std=c11 -Wall -Wextra -O2 -o smart_home_sim smart_home_sim.c
+./smart_home_sim
+```
 
+## Build (Windows - PowerShell)
 
+Requirements: `gcc` from MinGW/WSL or MSYS2
 
+Open PowerShell in the repo root and run:
+
+```powershell
+# Use bundled build script
+.\build.ps1
+```
+
+## Project layout
+
+- `smart_home_sim.c` — main source file
+- `.github/workflows/ci.yml` — CI build workflow
+- `Makefile` — simple build/clean targets
+- `build.ps1` — Windows build helper
+
+## Contributing
+
+Contributions welcome — see `CONTRIBUTING.md` for details.
+
+## License
+
+This project is available under the MIT License — see `LICENSE`.

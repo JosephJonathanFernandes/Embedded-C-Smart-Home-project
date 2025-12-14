@@ -1,7 +1,25 @@
+#/*******************************************************
+ * smart_home_sim.c
+ * Simple Smart Home simulation (console-based)
+ *
+ * Author: Joseph (please update author/contact)
+ * License: MIT
+ *
+ * Build: gcc -std=c11 -Wall -Wextra -O2 -o smart_home_sim smart_home_sim.c
+ ******************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#define SLEEP_MS(ms) Sleep(ms)
+#else
 #include <unistd.h>
+#define SLEEP_MS(ms) usleep((ms) * 1000)
+#endif
 
 typedef struct {
     int room_light;
@@ -11,7 +29,11 @@ typedef struct {
     float last_temp;
 } HomeState;
 
-HomeState state = {0, 0, 0, 0, 0.0};
+HomeState state = {0, 0, 0, 0, 0.0f};
+
+/* Forward declarations for functions used by tests */
+void saveToEEPROM(void);
+void loadFromEEPROM(void);
 
 // ------------------------- Menu UI -------------------------
 void showMainMenu() {
@@ -86,8 +108,43 @@ void simulateTemperature() {
         printf("Invalid ADC value.\n");
         return;
     }
-    state.last_temp = (adc_val / 1023.0) * 5.0 * 100.0;
+    state.last_temp = (adc_val / 1023.0f) * 5.0f * 100.0f;
     printf("Temperature: %.2f °C\n", state.last_temp);
+}
+
+/* Helper: convert ADC reading to temperature (same formula used above) */
+float adc_to_temp(int adc_val) {
+    if (adc_val < 0) adc_val = 0;
+    if (adc_val > 1023) adc_val = 1023;
+    return (adc_val / 1023.0f) * 5.0f * 100.0f;
+}
+
+/* Self-test: non-interactive checks to verify basic functionality. */
+int run_self_test(void) {
+    HomeState saved = {1, 0, 1, 2, 0.0f};
+    float expected_temp = adc_to_temp(512);
+
+    // set known state and save
+    state = saved;
+    saveToEEPROM();
+
+    // clear, then load
+    state.room_light = state.kitchen_light = state.hall_light = state.fan_speed = 0;
+    state.last_temp = 0.0f;
+    loadFromEEPROM();
+
+    // validate
+    if (state.room_light != saved.room_light) return 2;
+    if (state.kitchen_light != saved.kitchen_light) return 3;
+    if (state.hall_light != saved.hall_light) return 4;
+    if (state.fan_speed != saved.fan_speed) return 5;
+
+    // test ADC conversion
+    float got = adc_to_temp(512);
+    if (fabsf(got - expected_temp) > 0.001f) return 6;
+
+    printf("Self-test passed.\n");
+    return 0;
 }
 
 // ------------------------- 5. Save to EEPROM (file) -------------------------
@@ -115,12 +172,23 @@ void loadFromEEPROM() {
 }
 
 // ------------------------- Main -------------------------
-int main() {
+int main(int argc, char **argv) {
     int choice;
+
+    // Non-interactive test mode
+    if (argc > 1 && (strcmp(argv[1], "--test") == 0 || strcmp(argv[1], "-t") == 0)) {
+        int rc = run_self_test();
+        return rc;
+    }
 
     while (1) {
         showMainMenu();
-        scanf("%d", &choice);
+        if (scanf("%d", &choice) != 1) {
+            // clear input and continue
+            int c; while ((c = getchar()) != '\n' && c != EOF) {}
+            printf("Invalid input.\n");
+            continue;
+        }
 
         switch (choice) {
             case 1: toggleLights(); break;
@@ -132,6 +200,6 @@ int main() {
             case 0: printf("Exiting Smart Home System...\n"); return 0;
             default: printf("Invalid choice.\n");
         }
-        sleep(1); // Small delay for effect
+        SLEEP_MS(1000); // Small delay for effect (portable)
     }
 }
