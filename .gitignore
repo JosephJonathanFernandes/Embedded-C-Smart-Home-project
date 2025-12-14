@@ -1,0 +1,18 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+smart_home_sim
+bin/
+build/
+
+# Editor configs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Simulated EEPROM
+eeprom.bin

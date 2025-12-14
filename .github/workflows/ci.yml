@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update; sudo apt-get install -y build-essential
+      - name: Build
+        run: gcc -std=c11 -Wall -Wextra -O2 -o smart_home_sim smart_home_sim.c
+      - name: Verify build artifact
+        run: ls -la smart_home_sim
+      - name: Run self-test
+        run: ./smart_home_sim --test
